@@ -24,6 +24,7 @@
 #include <QtCore/QHashIterator>
 #include <QtCore/QFileInfo>
 #include <QtCore/QDir>
+#include <QtCore/QTimer>
 
 // KDE
 #include <KActionCollection>
@@ -37,6 +38,7 @@
 #include "Session.h"
 #include "ShellCommand.h"
 #include "KonsoleSettings.h"
+#include "ViewManager.h"
 
 using namespace Konsole;
 
@@ -62,6 +64,10 @@ void Application::init()
     // the keyboard shortcut to show menus look reasonable.
     setAttribute(Qt::AA_DontUseNativeMenuBar);
 #endif
+
+    QTimer *t = new QTimer(this);
+    connect(t, &QTimer::timeout, this, &Konsole::Application::saveSessionAuto);
+    t->start(5*60*1000);
 }
 
 Application::~Application()
@@ -76,6 +82,11 @@ MainWindow* Application::newMainWindow()
 
     connect(window, &Konsole::MainWindow::newWindowRequest, this, &Konsole::Application::createWindow);
     connect(window, &Konsole::MainWindow::viewDetached, this, &Konsole::Application::detachView);
+    connect(window, &Konsole::MainWindow::saveSession, this, &Konsole::Application::saveSession);
+    connect(window, &Konsole::MainWindow::restoreSession, this, &Konsole::Application::restoreSession);
+    connect(window, &QObject::destroyed, this, &Konsole::Application::windowDestroyed);
+
+    _windows.insert(window);
 
     return window;
 }
@@ -109,6 +120,12 @@ int Application::newInstance()
         // terminal, quit if such an argument was found
         if (processHelpArgs(args))
             return 0;
+
+        if(firstInstance && restoreSession("auto") > 0) {
+            firstInstance = false;
+            args->clear();
+            return 0;
+        }
 
         // returns from processWindowArgs(args, createdNewMainWindow)
         // if a new window was created
@@ -491,4 +508,55 @@ void Application::finalizeNewMainWindow(MainWindow* window)
     if (!KonsoleSettings::saveGeometryOnExit())
         window->resize(window->sizeHint());
     window->show();
+}
+
+void Application::windowDestroyed(QObject *obj) {
+    _windows.remove((MainWindow*)obj);
+}
+
+void Application::saveSessionAuto() {
+    saveSession("auto");
+}
+
+void Application::saveSession(const QString& name) {
+    QString cfgName = QString("session/konsole_fucking_session-%1").arg(name);
+    KConfig cfg(cfgName);
+
+    delete cfg.copyTo(cfgName + "-last");
+
+    SessionManager::instance()->saveSessions(&cfg);
+
+    KConfigGroup wi = cfg.group("window-info");
+    wi.writeEntry("NumberOfWindows", _windows.size());
+
+    int cnt = 0;
+    for(QSet<MainWindow*>::const_iterator itr = _windows.begin(); itr != _windows.end(); ++itr) {
+        KConfigGroup grp = cfg.group(QString("window-%1").arg(cnt++));
+        (*itr)->viewManager()->saveSessions(grp);
+        grp.writeEntry("geometry", (*itr)->saveGeometry());
+    }
+}
+
+int Application::restoreSession(const QString& name) {
+    KConfig cfg(QString("session/konsole_fucking_session-%1").arg(name));
+
+    SessionManager::instance()->restoreSessions(&cfg);
+
+    KConfigGroup wi = cfg.group("window-info");
+    int total = wi.readEntry("NumberOfWindows", 0);
+
+    QByteArray def;
+    for(int i = 0; i < total; ++i) {
+        KConfigGroup grp = cfg.group(QString("window-%1").arg(i));
+        MainWindow *w = newMainWindow();
+        w->viewManager()->restoreSessions(grp);
+
+        QByteArray geometry = grp.readEntry<QByteArray>("geometry", def );
+        if(geometry.size() != 0) {
+            w->restoreGeometry(geometry);
+        }
+
+        finalizeNewMainWindow(w);
+    }
+    return total;
 }

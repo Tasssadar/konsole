@@ -130,6 +130,9 @@ signals:
      */
     void viewDetached(Session* session);
 
+    void saveSession(const QString& name);
+    void restoreSession(const QString& name);
+
 protected:
     // Reimplemented for internal reasons.
     virtual void showEvent(QShowEvent* event);
@@ -170,6 +173,10 @@ private slots:
     void applyKonsoleSettings();
 
     void updateUseTransparency();
+
+    void saveSessionAct();
+    void saveSessionAndQuitAct();
+    void restoreSessionAct();
 
 public slots:
     void viewFullScreen(bool fullScreen);

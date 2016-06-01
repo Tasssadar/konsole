@@ -22,6 +22,7 @@
 
 // Qt
 #include <QVBoxLayout>
+#include <QApplication>
 
 // KDE
 #include <KAcceleratorManager>
@@ -318,6 +319,24 @@ void MainWindow::setupActions()
     collection->setDefaultShortcut(menuAction, Qt::CTRL + Qt::SHIFT + Qt::Key_Q);
     connect(menuAction, &QAction::triggered, this, &Konsole::MainWindow::close);
 
+    menuAction = collection->addAction(QStringLiteral("save-session"));
+    menuAction->setIcon(QIcon::fromTheme(QStringLiteral("tab-duplicate")));
+    menuAction->setText("Save the fucking session");
+    menuAction->setAutoRepeat(false);
+    connect(menuAction, &QAction::triggered, this, &Konsole::MainWindow::saveSessionAct);
+
+    menuAction = collection->addAction(QStringLiteral("restore-session"));
+    menuAction->setIcon(QIcon::fromTheme(QStringLiteral("tab-duplicate")));
+    menuAction->setText("Restore the fucking session");
+    menuAction->setAutoRepeat(false);
+    connect(menuAction, &QAction::triggered, this, &Konsole::MainWindow::restoreSessionAct);
+
+    menuAction = collection->addAction(QStringLiteral("save-session-quit"));
+    menuAction->setIcon(QIcon::fromTheme(QStringLiteral("window-close")));
+    menuAction->setText("Save the fucking auto-session and quit");
+    menuAction->setAutoRepeat(false);
+    connect(menuAction, &QAction::triggered, this, &Konsole::MainWindow::saveSessionAndQuitAct);
+
     // Bookmark Menu
     KActionMenu* bookmarkMenu = new KActionMenu(i18nc("@title:menu", "&Bookmarks"), collection);
     _bookmarkHandler = new BookmarkHandler(collection, bookmarkMenu->menu(), true, this);
@@ -597,22 +616,23 @@ bool MainWindow::queryClose()
 
 void MainWindow::saveProperties(KConfigGroup& group)
 {
-    _viewManager->saveSessions(group);
+    //_viewManager->saveSessions(group);
 }
 
 void MainWindow::readProperties(const KConfigGroup& group)
 {
-    _viewManager->restoreSessions(group);
+    //_viewManager->restoreSessions(group);
 }
 
 void MainWindow::saveGlobalProperties(KConfig* config)
 {
-    SessionManager::instance()->saveSessions(config);
+    //SessionManager::instance()->saveSessions(config);
 }
 
 void MainWindow::readGlobalProperties(KConfig* config)
 {
-    SessionManager::instance()->restoreSessions(config);
+    // restoreSession();
+    //SessionManager::instance()->restoreSessions(config);
 }
 
 void MainWindow::syncActiveShortcuts(KActionCollection* dest, const KActionCollection* source)
@@ -838,3 +858,15 @@ bool MainWindow::focusNextPrevChild(bool)
     return false;
 }
 
+void MainWindow::saveSessionAct() {
+    emit saveSession("manual");
+}
+
+void MainWindow::saveSessionAndQuitAct() {
+    emit saveSession("auto");
+    qApp->exit();
+}
+
+void MainWindow::restoreSessionAct() {
+    emit restoreSession("manual");
+}

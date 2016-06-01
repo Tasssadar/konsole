@@ -94,6 +94,7 @@ public:
     void restoreSessions(KConfig* config);
     int  getRestoreId(Session* session);
     Session* idToSession(int id);
+    Session* getRestoredSession(int id);
 
 signals:
     /**

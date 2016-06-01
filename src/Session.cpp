@@ -108,6 +108,7 @@ Session::Session(QObject* parent) :
     , _addToUtmp(true)
     , _flowControlEnabled(true)
     , _sessionId(0)
+    , _restoreId(-1)
     , _sessionProcessInfo(0)
     , _foregroundProcessInfo(0)
     , _foregroundPid(0)

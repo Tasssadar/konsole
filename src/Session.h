@@ -149,6 +149,8 @@ public:
 
     /** Returns the unique ID for this session. */
     int sessionId() const;
+    int restoreId() const { return _restoreId; }
+    void setRestoreId(int id) { _restoreId = id; }
 
     /**
      * This enum describes the contexts for which separate
@@ -752,6 +754,7 @@ private:
 
     QStringList    _environment;
     int            _sessionId;
+    int            _restoreId;
 
     QString        _initialWorkingDir;
     QString        _currentWorkingDir;

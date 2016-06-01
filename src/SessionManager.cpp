@@ -309,6 +309,7 @@ void SessionManager::restoreSessions(KConfig* config)
 
             Session* session = createSession(ptr);
             session->restoreSession(sessionGroup);
+            session->setRestoreId(n);
         }
     }
 }
@@ -318,6 +319,18 @@ Session* SessionManager::idToSession(int id)
     Q_ASSERT(id);
     foreach(Session * session, _sessions) {
         if (session->sessionId() == id)
+            return session;
+    }
+    // this should not happen
+    Q_ASSERT(0);
+    return 0;
+}
+
+Session* SessionManager::getRestoredSession(int id)
+{
+    Q_ASSERT(id);
+    foreach(Session * session, _sessions) {
+        if (session->restoreId() == id)
             return session;
     }
     // this should not happen

@@ -22,6 +22,7 @@
 
 // KDE
 #include <KUniqueApplication>
+#include <QSet>
 
 // Konsole
 #include "Profile.h"
@@ -71,6 +72,11 @@ private slots:
 
     void toggleBackgroundInstance();
 
+    void saveSessionAuto();
+    void windowDestroyed(QObject *obj);
+    void saveSession(const QString& name);
+    int restoreSession(const QString& name);
+
 private:
     void init();
     void listAvailableProfiles();
@@ -86,6 +92,8 @@ private:
     void finalizeNewMainWindow(MainWindow* window);
 
     MainWindow* _backgroundInstance;
+
+    QSet<MainWindow*> _windows;
 };
 }
 #endif  // APPLICATION_H

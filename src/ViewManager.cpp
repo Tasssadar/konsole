@@ -937,7 +937,7 @@ void ViewManager::restoreSessions(const KConfigGroup& group)
 
     int tab = 1;
     foreach(int id, ids) {
-        Session* session = SessionManager::instance()->idToSession(id);
+        Session* session = SessionManager::instance()->getRestoredSession(id);
         createView(session);
         if (!session->isRunning())
             session->run();

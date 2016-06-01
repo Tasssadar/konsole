@@ -11,6 +11,10 @@
             <Separator/>
             <DefineGroup name="session-tab-operations"/>
             <Action name="close-window"/>
+            <Separator/>
+            <Action name="save-session"/>
+            <Action name="restore-session"/>
+            <Action name="save-session-quit"/>
         </Menu>
         <Menu name="edit"><text>Edit</text>
             <DefineGroup name="session-edit-operations"/>
