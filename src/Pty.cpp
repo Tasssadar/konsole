@@ -251,6 +251,9 @@ int Pty::start(const QString& programName,
 
     KProcess::start();
 
+    // waitForStarted freezes with Qt 5.6 if executed too many times in quick succession, wtf?
+    usleep(10000);
+
     if (waitForStarted()) {
         return 0;
     } else {
